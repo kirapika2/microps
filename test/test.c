@@ -11,6 +11,7 @@
 
 static volatile sig_atomic_t terminate;
 
+// シグナルハンドラ
 static void
 on_signal(int signum)
 {
@@ -18,56 +19,70 @@ on_signal(int signum)
     terminate = 1;
 }
 
+// プロトコルスタックのための事前準備
 static int
 setup(void)
 {
     struct sigaction sa = {0};
 
     sa.sa_handler = on_signal;
-    if (sigaction(SIGINT, &sa, NULL) == -1) {
+    if (sigaction(SIGINT, &sa, NULL) == -1)
+    {
         errorf("sigaction() %s", strerror(errno));
         return -1;
     }
     infof("setup protocol stack...");
-    if (net_init() == -1) {
+    if (net_init() == -1)
+    {
         errorf("net_init() failure");
         return -1;
     }
-    if (net_run() == -1) {
+    if (net_run() == -1)
+    {
         errorf("net_run() failure");
         return -1;
     }
     return 0;
 }
 
+// プロトコルスタックの後始末
 static int
 cleanup(void)
 {
     infof("cleanup protocol stack...");
-    if (net_shutdown() == -1) {
+    if (net_shutdown() == -1)
+    {
         errorf("net_shutdown() failure");
         return -1;
     }
     return 0;
 }
 
+// アプリケーション処理用
 static int
 app_main(void)
 {
+    debugf("press Ctrl+C to terminate");
+    while (!terminate)
+    {
+        sleep(1);
+    }
+    debugf("termintate");
     return 0;
 }
 
-int
-main(void)
+int main(void)
 {
     int ret;
 
-    if (setup() == -1) {
+    if (setup() == -1)
+    {
         errorf("setup() failure");
         return -1;
     }
     ret = app_main();
-    if (cleanup() == -1) {
+    if (cleanup() == -1)
+    {
         errorf("cleanup() failure");
         return -1;
     }
