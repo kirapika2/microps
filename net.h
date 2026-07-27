@@ -8,30 +8,31 @@
 #define IFNAMSIZ 16
 #endif
 
-#define NET_DEVICE_TYPE_DUMMY     0x0000
-#define NET_DEVICE_TYPE_LOOPBACK  0x0001
-#define NET_DEVICE_TYPE_ETHERNET  0x0002
+#define NET_DEVICE_TYPE_DUMMY 0x0000
+#define NET_DEVICE_TYPE_LOOPBACK 0x0001
+#define NET_DEVICE_TYPE_ETHERNET 0x0002
 
-#define NET_DEVICE_FLAG_UP        0x0001
-#define NET_DEVICE_FLAG_LOOPBACK  0x0010
+#define NET_DEVICE_FLAG_UP 0x0001
+#define NET_DEVICE_FLAG_LOOPBACK 0x0010
 #define NET_DEVICE_FLAG_BROADCAST 0x0020
-#define NET_DEVICE_FLAG_P2P       0x0040
-#define NET_DEVICE_FLAG_NEED_ARP  0x0100
+#define NET_DEVICE_FLAG_P2P 0x0040
+#define NET_DEVICE_FLAG_NEED_ARP 0x0100
 
 #define NET_DEVICE_ADDR_LEN 16
 
 #define NET_DEVICE_IS_UP(x) ((x)->flags & NET_DEVICE_FLAG_UP)
 #define NET_DEVICE_STATE(x) (NET_DEVICE_IS_UP(x) ? "UP" : "DOWN")
 
-struct net_device {
-    struct net_device *next;
-    unsigned int index;
-    char name[IFNAMSIZ];
-    uint16_t type;
-    uint16_t mtu;
-    uint16_t flags;
-    uint16_t hlen;
-    uint16_t alen;
+struct net_device
+{
+    struct net_device *next; // 次のデバイスへのポインタ
+    unsigned int index;      // デバイスのインデックス番号
+    char name[IFNAMSIZ];     // デバイス名
+    uint16_t type;           // NET_DEVICE_TYPE_*
+    uint16_t mtu;            // 最大転送単位(Maximum Transmission Unit)
+    uint16_t flags;          // NET_DEVICE_FLAG_*
+    uint16_t hlen;           // データリンクプロトコルのヘッダ長
+    uint16_t alen;           // データリンクプロトコルのアドレス長
     uint8_t addr[NET_DEVICE_ADDR_LEN];
     uint8_t broadcast[NET_DEVICE_ADDR_LEN];
 };
