@@ -35,6 +35,15 @@ struct net_device
     uint16_t alen;           // データリンクプロトコルのアドレス長
     uint8_t addr[NET_DEVICE_ADDR_LEN];
     uint8_t broadcast[NET_DEVICE_ADDR_LEN];
+    struct net_device_ops *ops; // デバイス固有の操作関数へのポインタ
+    void *priv;                 // デバイス固有のプライベートデータへのポインタ
+};
+
+struct net_device_ops
+{
+    int (*open)(struct net_device *dev);
+    int (*close)(struct net_device *dev);
+    int (*output)(struct net_device *dev, uint16_t type, const uint8_t *data, size_t len, const void *dst);
 };
 
 extern struct net_device *
@@ -43,6 +52,9 @@ extern int
 net_device_register(struct net_device *dev);
 extern int
 net_device_output(struct net_device *dev, uint16_t type, const uint8_t *data, size_t len, const void *dst);
+
+extern int
+net_input(uint16_t type, const uint8_t *data, size_t len, struct net_device *dev);
 
 extern int
 net_init(void);
