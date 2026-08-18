@@ -6,36 +6,12 @@
 
 #include "util.h"
 #include "net.h"
+#include "driver/loopback.h"
 
 #include "test.h"
 
 static volatile sig_atomic_t terminate;
 static struct net_device *dev;
-
-// ダミーデバイス登録
-struct net_device *
-dummy_init(void)
-{
-    struct net_device *dev;
-
-    dev = net_device_alloc();
-    if (!dev)
-    {
-        errorf("net_device_alloc() failed");
-        return NULL;
-    }
-    dev->type = NET_DEVICE_TYPE_DUMMY;
-    dev->mtu = 128;
-    dev->hlen = 0; /* no header */
-    dev->alen = 0; /* no address */
-    if (net_device_register(dev) == -1)
-    {
-        errorf("net_device_register() failed");
-        return NULL;
-    }
-    infof("success, dev=%s", dev->name);
-    return dev;
-}
 
 // シグナルハンドラ
 static void
@@ -63,10 +39,10 @@ setup(void)
         errorf("net_init() failure");
         return -1;
     }
-    dev = dummy_init();
+    dev = loopback_init();
     if (!dev)
     {
-        errorf("dummy_init() failure");
+        errorf("loopback_init() failure");
         return -1;
     }
     if (net_run() == -1)
