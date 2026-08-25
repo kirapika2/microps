@@ -53,6 +53,7 @@ struct net_device_ops
     int (*output)(struct net_device *dev, uint16_t type, const uint8_t *data, size_t len, const void *dst);
 };
 
+// 関数ポインタに型名付与
 typedef void (*net_protocol_handler_t)(const uint8_t *data, size_t len, struct net_device *dev);
 
 extern struct net_device *

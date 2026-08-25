@@ -4,6 +4,8 @@
 
 #include "platform.h"
 
+#include "ip.h"
+
 #include "util.h"
 #include "net.h"
 
@@ -11,6 +13,7 @@ struct net_protocol
 {
     struct net_protocol *next;
     uint16_t type;
+    // 受信ハンドラ。全プロトコルで同じ関数型(シグネチャ)なので、共通に呼び出せる
     net_protocol_handler_t handler;
 };
 
@@ -18,8 +21,8 @@ struct net_protocol
  * NOTE: if you want to add/delete the entries after net_run(),
  *       you need to protect these lists with a lock.
  */
-static struct net_device *devices; // 最初のデバイスのポインタ
-static struct net_protocol *protocols;
+static struct net_device *devices;     // 最初のデバイスのポインタ
+static struct net_protocol *protocols; // 最初のプロトコル構造体のポインタ
 
 // ネットワークデバイスのオブジェクト割り当て
 struct net_device *
@@ -127,8 +130,35 @@ int net_device_output(struct net_device *dev, uint16_t type, const uint8_t *data
 /*
  * NOTE: must not be call after net_run()
  */
+// プロトコルの登録
 int net_protocol_register(uint16_t type, net_protocol_handler_t handler)
 {
+    struct net_protocol *proto;
+
+    for (proto = protocols; proto; proto = proto->next)
+    {
+        if (type == proto->type)
+        {
+            errorf("already registered, type=0x%04x", type);
+            return -1;
+        }
+    }
+
+    // プロトコル構造体の割り当て
+    proto = memory_alloc(sizeof(*proto));
+    if (!proto)
+    {
+        errorf("memory_alloc() failure");
+        return -1;
+    }
+
+    // プロトコルの登録
+    proto->type = type;
+    proto->handler = handler;
+    proto->next = protocols;
+    protocols = proto;
+    infof("success, type=0x%04x", type);
+    return 0;
 }
 
 // ネットワークデバイスからのデータ入力
@@ -140,8 +170,20 @@ dev: 入力パケットを受信したネットワークデバイスのポイン
 */
 int net_input(uint16_t type, const uint8_t *data, size_t len, struct net_device *dev)
 {
+    struct net_protocol *proto;
+
     debugf("dev=%s, type=0x%04x, len=%zu", dev->name, type, len);
     debugdump(data, len);
+
+    for (proto = protocols; proto; proto = proto->next)
+    {
+        if (type == proto->type)
+        {
+            proto->handler(data, len, dev);
+            return 0;
+        }
+    }
+    /* サポートされていないプロトコルの場合の処理 */
     return 0;
 }
 
@@ -153,6 +195,13 @@ int net_init(void)
         errorf("platform_init() failed");
         return -1;
     }
+
+    if (ip_init() == -1)
+    {
+        errorf("ip_init() failed");
+        return -1;
+    }
+
     infof("success");
     return 0;
 }
