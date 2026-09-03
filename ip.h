@@ -17,17 +17,19 @@
 
 typedef uint32_t ip_addr_t;
 
-struct ip_hdr {
-    uint8_t vhl;
-    uint8_t tos;
-    uint16_t total;
-    uint16_t id;
-    uint16_t offset;
-    uint8_t ttl;
-    uint8_t protocol;
-    uint16_t sum;
-    ip_addr_t src;
-    ip_addr_t dst;
+// IP ヘッダ構造体
+struct ip_hdr
+{
+    uint8_t vhl;      // バージョン + ヘッダ長
+    uint8_t tos;      // サービスタイプ(Type of Service)
+    uint16_t total;   // パケット全体の長さ(バイト単位)
+    uint16_t id;      // 識別子
+    uint16_t offset;  // フラグ + フラグメントオフセット
+    uint8_t ttl;      // 生存時間(Time to Live)
+    uint8_t protocol; // 上位プロトコル
+    uint16_t sum;     // ヘッダチェックサム
+    ip_addr_t src;    // 送信元IPアドレス
+    ip_addr_t dst;    // 宛先IPアドレス
 };
 
 extern const ip_addr_t IP_ADDR_ANY;
